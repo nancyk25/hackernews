@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import axios from "axios";
 import logo from "./logo.svg";
 import "./App.css";
 
@@ -73,13 +74,17 @@ const Table = ({ list, onDismiss }) => (
 );
 
 class App extends Component {
+  _isMounted = false;
+
   constructor(props) {
     super(props);
     this.state = {
-      result: null,
-      page: 0,
-      searchTerm: DEFAULT_QUERY
+      results: null,
+      searchKey: "",
+      searchTerm: DEFAULT_QUERY,
+      error: null
     };
+    this.needsToSearchTopStories = this.needsToSearchTopStories.bind(this);
     this.setSearchTopStories = this.setSearchTopStories.bind(this);
     this.fetchSearchTopStories = this.fetchSearchTopStories.bind(this);
     this.onSearchChange = this.onSearchChange.bind(this);
@@ -87,42 +92,66 @@ class App extends Component {
     this.onDismiss = this.onDismiss.bind(this);
   }
 
-  fetchSearchTopStories(searchTerm, page) {
+  //prevent fetching when a result if available in the cache
+  needsToSearchTopStories(searchTerm) {
+    return !this.state.results[searchTerm];
+  }
+
+  fetchSearchTopStories(searchTerm, page = 0) {
     let url = `${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`;
-    fetch(url)
-      .then(response => response.json())
-      .then(result => this.setSearchTopStories(result, page))
-      .catch(error => error);
+    axios(url)
+      .then(result => this.setSearchTopStories(result.data))
+      .catch(error => this._isMounted && this.setState({ error }));
     // let url = `${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`;
     console.log("after fetch", url);
   }
 
   setSearchTopStories(result) {
     //get page and hits from the results
-    const { page } = this.state;
-    const { hits } = result;
-    //check if there are old hits by checking page number
-    const oldHits = page !== 0 ? this.state.result.hits : [];
-    //merge the hits
+    console.log("RESULTS---->", result);
+
+    // const { page } = this.state;
+    const { hits, page } = result;
+    const { searchKey, results } = this.state;
+    //store each result by search key
+    const oldHits =
+      results && results[searchKey] ? results[searchKey].hits : [];
+    console.log("old hits--->", oldHits);
+    //merge the old hits and new hits
     const updatedHits = [...oldHits, ...hits];
     console.log("updates", updatedHits);
     //update the state of result
-    this.setState({ result: { hits: updatedHits } });
-    // console.log("result.page", this.state.page)
+    this.setState({
+      results: {
+        ...results,
+        [searchKey]: { hits: updatedHits, page }
+      }
+    });
   }
 
   //fetch JSON DATA then set it as result state if not catch error
   componentDidMount() {
+    this._isMounted = true;
     const { searchTerm } = this.state;
-    const { page } = this.state;
-    this.fetchSearchTopStories(searchTerm, page);
+    this.setState({ searchKey: searchTerm });
+    this.fetchSearchTopStories(searchTerm);
+  }
+
+  componentWillUnmount() {
+    this._isMounted = false;
   }
 
   onDismiss(id) {
+    const { searchKey, results } = this.state;
+    const { hits, page } = results[searchKey];
+
     const isNotId = item => item.objectID !== id;
-    const updatedHits = this.state.result.hits.filter(isNotId);
+    const updatedHits = this.state.results[searchKey].hits.filter(isNotId);
     this.setState({
-      result: { ...this.state.result, hits: updatedHits }
+      results: {
+        ...results,
+        [searchKey]: { hits: updatedHits, page }
+      }
     });
     console.log("updatedhits", updatedHits);
   }
@@ -133,21 +162,33 @@ class App extends Component {
 
   onSearchSubmit(event) {
     const { searchTerm } = this.state;
-    this.fetchSearchTopStories(searchTerm);
+    this.setState({ searchKey: searchTerm });
+    if (this.needsToSearchTopStories(searchTerm)) {
+      this.fetchSearchTopStories(searchTerm);
+    }
     event.preventDefault();
   }
 
-  onPaginatedSearch(event) {
-    const { searchTerm, page } = this.state;
-    this.setState({ page: this.state.page + 1 });
-    console.log("paginated page state--->", page);
-    this.fetchSearchTopStories(searchTerm, page);
-  }
+  // onPaginatedSearch(event) {
+  //   // this.setState({ page: this.state.page + 1 });
+  //   const { searchTerm, page } = this.state;
+  //   console.log("paginated page state--->", page);
+  //   this.fetchSearchTopStories(searchTerm, page + 1);
+  // }
 
   render() {
-    const { searchTerm, result, page } = this.state;
+    const { searchTerm, results, searchKey, error } = this.state;
     //default to page 0 when there is no result and result page yet
-    // const page = (result && page) || 0;
+    const page =
+      (results && results[searchKey] && results[searchKey].page) || 0;
+
+    const list =
+      (results && results[searchKey] && results[searchKey].hits) || [];
+
+    //display error message:
+    if (error) {
+      return <p> Something went wrong. </p>;
+    }
 
     return (
       <div className="page">
@@ -160,9 +201,20 @@ class App extends Component {
             Search here!
           </Search>
         </div>
-        {result && <Table list={result.hits} onDismiss={this.onDismiss} />}
+        {error ? (
+          <div className="interactions">
+            <p> Something went wrong. </p>
+          </div>
+        ) : (
+          <Table list={list} onDismiss={this.onDismiss} />
+        )}
         <div className="interactions">
-          <Button onClick={() => this.onPaginatedSearch()}> More </Button>
+          <Button
+            onClick={() => this.fetchSearchTopStories(searchKey, page + 1)}
+          >
+            {" "}
+            More{" "}
+          </Button>
         </div>
       </div>
     );
