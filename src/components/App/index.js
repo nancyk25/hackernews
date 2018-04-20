@@ -1,77 +1,18 @@
 import React, { Component } from "react";
 import axios from "axios";
-import logo from "./logo.svg";
+import {
+  DEFAULT_QUERY,
+  DEFAULT_HPP,
+  PATH_BASE,
+  PATH_SEARCH,
+  PARAM_SEARCH,
+  PARAM_PAGE,
+  PARAM_HPP
+} from "../../constants";
 import "./App.css";
-
-const DEFAULT_QUERY = "redux";
-const DEFAULT_HPP = "20";
-const PATH_BASE = "https://hn.algolia.com/api/v1";
-const PATH_SEARCH = "/search";
-const PARAM_SEARCH = "query=";
-const PARAM_PAGE = "page=";
-const PARAM_HPP = "hitsPerPage=";
-
-const largeColumn = {
-  width: "40%"
-};
-
-const midColumn = {
-  width: "30%"
-};
-
-const smallColumn = {
-  width: "10%"
-};
-
-//Search Component - Functional Stateless/Container Components in es6
-const Search = ({ value, onChange, onSubmit, children }) => (
-  <form onSubmit={onSubmit}>
-    {children}
-    <input type="text" value={value} onChange={onChange} />
-    <button type="submit">{children}</button>
-  </form>
-);
-
-//Reusable button component
-class Button extends Component {
-  render() {
-    const { onClick, className = "", children } = this.props;
-    return (
-      <button
-        onClick={onClick}
-        className={className}
-        children={children}
-        type="button"
-      >
-        {children}
-      </button>
-    );
-  }
-}
-
-//Table Component
-const Table = ({ list, onDismiss }) => (
-  <div className="table">
-    {list.map(item => (
-      <div className="table-row" key={item.objectID}>
-        <span style={largeColumn}>
-          <a href={item.url}>{item.title}</a>
-        </span>
-        <span style={midColumn}>{item.author}</span>
-        <span style={smallColumn}>{item.num_comments}</span>
-        <span style={smallColumn}>{item.points}</span>
-        <span style={smallColumn}>
-          <Button
-            className="button-inline"
-            onClick={() => onDismiss(item.objectID)}
-          >
-            Dismiss!
-          </Button>
-        </span>
-      </div>
-    ))}
-  </div>
-);
+import Button from "../Button";
+import { Search } from "../Search";
+import { Table } from "../Table";
 
 class App extends Component {
   _isMounted = false;
@@ -168,13 +109,6 @@ class App extends Component {
     }
     event.preventDefault();
   }
-
-  // onPaginatedSearch(event) {
-  //   // this.setState({ page: this.state.page + 1 });
-  //   const { searchTerm, page } = this.state;
-  //   console.log("paginated page state--->", page);
-  //   this.fetchSearchTopStories(searchTerm, page + 1);
-  // }
 
   render() {
     const { searchTerm, results, searchKey, error } = this.state;
