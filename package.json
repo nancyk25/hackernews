@@ -17,7 +17,11 @@
   },
   "devDependencies": {
     "babel-eslint": "^7.2.3",
+    "enzyme": "^3.3.0",
+    "enzyme-adapter-react-16": "^1.1.1",
     "eslint": "^3.19.0",
-    "prettier-eslint": "^8.8.1"
+    "prettier-eslint": "^8.8.1",
+    "react-addons-test-utils": "^15.6.2",
+    "react-test-renderer": "^16.3.2"
   }
 }
