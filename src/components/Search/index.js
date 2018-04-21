@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React from "react";
 
 //Search Component - Functional Stateless/Container Components in es6
 export const Search = ({ value, onChange, onSubmit, children }) => (
