@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import PropTypes from "prop-types";
 
 class Button extends Component {
   render() {
@@ -15,5 +16,15 @@ class Button extends Component {
     );
   }
 }
+
+Button.propTypes = {
+  onClick: PropTypes.func,
+  className: PropTypes.string,
+  children: PropTypes.node
+};
+
+Button.defaultProps = {
+  className: ""
+};
 
 export default Button;

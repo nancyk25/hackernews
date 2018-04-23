@@ -29,15 +29,26 @@ exports[`App has a valid snapshot 1`] = `
   <div
     className="interactions"
   >
-    <button
-      className=""
-      onClick={[Function]}
-      type="button"
-    >
-       
-      More
-       
-    </button>
+    <div>
+      <div
+        className="ui active transition visible inverted dimmer"
+        onClick={[Function]}
+      >
+        <div
+          className="content"
+        >
+          <div
+            className="center"
+          >
+            <div
+              className="ui text loader"
+            >
+               Loading! 
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 `;

@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM, { render } from "react-dom";
-import { Search } from "./index";
+import Search from "./index";
 import renderer from "react-test-renderer";
 
 describe("Search", () => {

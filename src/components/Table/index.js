@@ -1,5 +1,7 @@
 import React from "react";
 import Button from "../Button";
+import PropTypes from "prop-types";
+import { sortBy } from "lodash";
 
 export const largeColumn = {
   width: "40%"
@@ -13,10 +15,45 @@ export const smallColumn = {
   width: "10%"
 };
 
+// const SORTS = {
+//   NONE: list => list,
+//   TITLE: list => sortBy(list, "title"),
+//   AUTHOR: list => sortBy(list, "author"),
+//   COMMENTS: list => sortBy(list, "num_comments").reverse(),
+//   POINTS: list => sortBy(list, "points").reverse()
+// };
+
 //Table Component
-export const Table = ({ list, onDismiss }) => (
+export const Table = ({ Sort, SORTS, onSort, list, sortKey, onDismiss }) => (
   <div className="table">
-    {list.map(item => (
+    <div className="table-header">
+      <span style={{ width: "40%" }}>
+        <Sort sortKey={"TITLE"} onSort={onSort}>
+          {" "}
+          Title{" "}
+        </Sort>
+      </span>
+      <span style={{ width: "30%" }}>
+        <Sort sortKey={"AUTHOR"} onSort={onSort}>
+          {" "}
+          Author{" "}
+        </Sort>
+      </span>
+      <span style={{ width: "10%" }}>
+        <Sort sortKey={"COMMENTS"} onSort={onSort}>
+          {" "}
+          Comments{" "}
+        </Sort>
+      </span>
+      <span style={{ width: "10%" }}>
+        <Sort sortKey={"POINTS"} onSort={onSort}>
+          {" "}
+          Points{" "}
+        </Sort>
+      </span>
+      <span style={{ width: "10%" }}>Archive</span>
+    </div>
+    {SORTS[sortKey](list).map(item => (
       <div className="table-row" key={item.objectID}>
         <span style={largeColumn}>
           <a href={item.url}>{item.title}</a>
@@ -36,3 +73,17 @@ export const Table = ({ list, onDismiss }) => (
     ))}
   </div>
 );
+
+Table.propTypes = {
+  list: PropTypes.arrayOf(
+    //define content of array more explicitly
+    PropTypes.shape({
+      objectID: PropTypes.string.isRequired,
+      author: PropTypes.string,
+      url: PropTypes.string,
+      num_comments: PropTypes.number,
+      points: PropTypes.number
+    })
+  ).isRequired,
+  onDismiss: PropTypes.func
+};

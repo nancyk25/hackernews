@@ -1,5 +1,7 @@
 import React, { Component } from "react";
 import axios from "axios";
+import { sortBy } from "lodash";
+
 import {
   DEFAULT_QUERY,
   DEFAULT_HPP,
@@ -11,8 +13,10 @@ import {
 } from "../../constants";
 import "./App.css";
 import Button from "../Button";
-import { Search } from "../Search";
+import Search from "../Search";
 import { Table } from "../Table";
+import { Loader, Dimmer, Segment } from "semantic-ui-react";
+import "semantic-ui-css/semantic.min.css";
 
 class App extends Component {
   _isMounted = false;
@@ -23,7 +27,9 @@ class App extends Component {
       results: null,
       searchKey: "",
       searchTerm: DEFAULT_QUERY,
-      error: null
+      error: null,
+      isLoading: false,
+      sortKey: "NONE"
     };
     this.needsToSearchTopStories = this.needsToSearchTopStories.bind(this);
     this.setSearchTopStories = this.setSearchTopStories.bind(this);
@@ -31,6 +37,11 @@ class App extends Component {
     this.onSearchChange = this.onSearchChange.bind(this);
     this.onSearchSubmit = this.onSearchSubmit.bind(this);
     this.onDismiss = this.onDismiss.bind(this);
+    this.onSort = this.onSort.bind(this);
+  }
+
+  onSort(sortKey) {
+    this.setState({ sortKey });
   }
 
   //prevent fetching when a result if available in the cache
@@ -40,6 +51,7 @@ class App extends Component {
 
   fetchSearchTopStories(searchTerm, page = 0) {
     let url = `${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`;
+    this.setState({ isLoading: true });
     axios(url)
       .then(result => this.setSearchTopStories(result.data))
       .catch(error => this._isMounted && this.setState({ error }));
@@ -66,8 +78,10 @@ class App extends Component {
       results: {
         ...results,
         [searchKey]: { hits: updatedHits, page }
-      }
+      },
+      isLoading: false
     });
+    console.log("this is the state", this.state);
   }
 
   //fetch JSON DATA then set it as result state if not catch error
@@ -111,7 +125,7 @@ class App extends Component {
   }
 
   render() {
-    const { searchTerm, results, searchKey, error } = this.state;
+    const { searchTerm, results, searchKey, error, isLoading } = this.state;
     //default to page 0 when there is no result and result page yet
     const page =
       (results && results[searchKey] && results[searchKey].page) || 0;
@@ -123,6 +137,31 @@ class App extends Component {
     if (error) {
       return <p> Something went wrong. </p>;
     }
+    const Loading = () => (
+      <div>
+        <Dimmer active inverted>
+          <Loader> Loading! </Loader>
+        </Dimmer>
+      </div>
+    );
+    //HOC conditional rendering based on isLoading prop
+    const withLoading = Component => ({ isLoading, ...rest }) =>
+      isLoading ? <Loading /> : <Component {...rest} />;
+    const ButtonWithLoading = withLoading(Button);
+
+    const SORTS = {
+      NONE: list => list,
+      TITLE: list => sortBy(list, "title"),
+      AUTHOR: list => sortBy(list, "author"),
+      COMMENTS: list => sortBy(list, "num_comments").reverse(),
+      POINTS: list => sortBy(list, "points").reverse()
+    };
+
+    const Sort = ({ sortKey, onSort, children }) => (
+      <Button onClick={() => onSort(sortKey)} className="button-inline">
+        {children}
+      </Button>
+    );
 
     return (
       <div className="page">
@@ -140,15 +179,21 @@ class App extends Component {
             <p> Something went wrong. </p>
           </div>
         ) : (
-          <Table list={list} onDismiss={this.onDismiss} />
+          <Table
+            list={list}
+            SORTS={SORTS}
+            Sort={Sort}
+            onSort={this.onSort}
+            onDismiss={this.onDismiss}
+          />
         )}
         <div className="interactions">
-          <Button
+          <ButtonWithLoading
+            isLoading={isLoading}
             onClick={() => this.fetchSearchTopStories(searchKey, page + 1)}
           >
-            {" "}
-            More{" "}
-          </Button>
+            More
+          </ButtonWithLoading>
         </div>
       </div>
     );
