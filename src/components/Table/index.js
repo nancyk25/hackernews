@@ -53,7 +53,7 @@ export const Table = ({ Sort, SORTS, onSort, list, sortKey, onDismiss }) => (
       </span>
       <span style={{ width: "10%" }}>Archive</span>
     </div>
-    {SORTS[sortKey](list).map(item => (
+    {SORTS[sortKey].map(item => (
       <div className="table-row" key={item.objectID}>
         <span style={largeColumn}>
           <a href={item.url}>{item.title}</a>
