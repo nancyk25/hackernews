@@ -3,6 +3,7 @@ import Button from "../Button";
 import PropTypes from "prop-types";
 import { sortBy } from "lodash";
 import classNames from "classnames";
+import { COMMENTS_URL } from "../../constants";
 
 export const largeColumn = {
   width: "40%"
@@ -100,7 +101,15 @@ class Table extends Component {
               <a href={item.url}>{item.title}</a>
             </span>
             <span style={midColumn}>{item.author}</span>
-            <span style={smallColumn}>{item.num_comments}</span>
+            <span style={smallColumn}>
+              {item.objectID ? (
+                <a target="_blank" href={`${COMMENTS_URL}${item.objectID}`}>
+                  {item.num_comments}
+                </a>
+              ) : (
+                <React.Fragment>{item.num_comments}</React.Fragment>
+              )}
+            </span>
             <span style={smallColumn}>{item.points}</span>
             <span style={smallColumn}>
               <Button
