@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import axios from "axios";
 import { sortBy } from "lodash";
+import classNames from "classnames";
 
 import {
   DEFAULT_QUERY,
@@ -14,9 +15,26 @@ import {
 import "./App.css";
 import Button from "../Button";
 import Search from "../Search";
-import { Table } from "../Table";
+import Table from "../Table";
 import { Loader, Dimmer, Segment } from "semantic-ui-react";
 import "semantic-ui-css/semantic.min.css";
+
+export const updateSearchTopStories = (hits, page) => prevState => {
+  const { searchKey, results } = prevState;
+  const oldHits = results && results[searchKey] ? results[searchKey].hits : [];
+  console.log("old hits--->", oldHits);
+  //merge the old hits and new hits
+  const updatedHits = [...oldHits, ...hits];
+  console.log("updates", updatedHits);
+  //update the state of result
+  return {
+    results: {
+      ...results,
+      [searchKey]: { hits: updatedHits, page }
+    },
+    isLoading: false
+  };
+};
 
 class App extends Component {
   _isMounted = false;
@@ -28,8 +46,7 @@ class App extends Component {
       searchKey: "",
       searchTerm: DEFAULT_QUERY,
       error: null,
-      isLoading: false,
-      sortKey: "NONE"
+      isLoading: false
     };
     this.needsToSearchTopStories = this.needsToSearchTopStories.bind(this);
     this.setSearchTopStories = this.setSearchTopStories.bind(this);
@@ -37,13 +54,7 @@ class App extends Component {
     this.onSearchChange = this.onSearchChange.bind(this);
     this.onSearchSubmit = this.onSearchSubmit.bind(this);
     this.onDismiss = this.onDismiss.bind(this);
-    this.onSort = this.onSort.bind(this);
   }
-
-  onSort = sortKey => {
-    this.setState({ sortKey });
-    console.log(this.state.sortKey);
-  };
 
   //prevent fetching when a result if available in the cache
   needsToSearchTopStories(searchTerm) {
@@ -66,22 +77,7 @@ class App extends Component {
 
     // const { page } = this.state;
     const { hits, page } = result;
-    const { searchKey, results } = this.state;
-    //store each result by search key
-    const oldHits =
-      results && results[searchKey] ? results[searchKey].hits : [];
-    console.log("old hits--->", oldHits);
-    //merge the old hits and new hits
-    const updatedHits = [...oldHits, ...hits];
-    console.log("updates", updatedHits);
-    //update the state of result
-    this.setState({
-      results: {
-        ...results,
-        [searchKey]: { hits: updatedHits, page }
-      },
-      isLoading: false
-    });
+    this.setState(updateSearchTopStories(hits, page));
     console.log("this is the state", this.state);
   }
 
@@ -126,14 +122,7 @@ class App extends Component {
   }
 
   render() {
-    const {
-      searchTerm,
-      results,
-      searchKey,
-      sortKey,
-      error,
-      isLoading
-    } = this.state;
+    const { searchTerm, results, searchKey, error, isLoading } = this.state;
     //default to page 0 when there is no result and result page yet
     const page =
       (results && results[searchKey] && results[searchKey].page) || 0;
@@ -173,12 +162,7 @@ class App extends Component {
             <p> Something went wrong. </p>
           </div>
         ) : (
-          <Table
-            list={list}
-            sortKey={sortKey}
-            onSort={this.onSort}
-            onDismiss={this.onDismiss}
-          />
+          <Table list={list} onDismiss={this.onDismiss} />
         )}
         <div className="interactions">
           <ButtonWithLoading
