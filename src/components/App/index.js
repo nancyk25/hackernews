@@ -40,9 +40,10 @@ class App extends Component {
     this.onSort = this.onSort.bind(this);
   }
 
-  onSort(sortKey) {
+  onSort = sortKey => {
     this.setState({ sortKey });
-  }
+    console.log(this.state.sortKey);
+  };
 
   //prevent fetching when a result if available in the cache
   needsToSearchTopStories(searchTerm) {
@@ -125,7 +126,14 @@ class App extends Component {
   }
 
   render() {
-    const { searchTerm, results, searchKey, error, isLoading } = this.state;
+    const {
+      searchTerm,
+      results,
+      searchKey,
+      sortKey,
+      error,
+      isLoading
+    } = this.state;
     //default to page 0 when there is no result and result page yet
     const page =
       (results && results[searchKey] && results[searchKey].page) || 0;
@@ -149,20 +157,6 @@ class App extends Component {
       isLoading ? <Loading /> : <Component {...rest} />;
     const ButtonWithLoading = withLoading(Button);
 
-    const SORTS = {
-      NONE: list => list,
-      TITLE: list => sortBy(list, "title"),
-      AUTHOR: list => sortBy(list, "author"),
-      COMMENTS: list => sortBy(list, "num_comments").reverse(),
-      POINTS: list => sortBy(list, "points").reverse()
-    };
-
-    const Sort = ({ sortKey, onSort, children }) => (
-      <Button onClick={() => onSort(sortKey)} className="button-inline">
-        {children}
-      </Button>
-    );
-
     return (
       <div className="page">
         <div className="interactions">
@@ -181,8 +175,7 @@ class App extends Component {
         ) : (
           <Table
             list={list}
-            SORTS={SORTS}
-            Sort={Sort}
+            sortKey={sortKey}
             onSort={this.onSort}
             onDismiss={this.onDismiss}
           />

@@ -15,45 +15,43 @@ export const smallColumn = {
   width: "10%"
 };
 
-// const SORTS = {
-//   NONE: list => list,
-//   TITLE: list => sortBy(list, "title"),
-//   AUTHOR: list => sortBy(list, "author"),
-//   COMMENTS: list => sortBy(list, "num_comments").reverse(),
-//   POINTS: list => sortBy(list, "points").reverse()
-// };
+const Sort = ({ sortKey, onSort, children }) => (
+  <Button onClick={() => onSort(sortKey)} className="button-inline">
+    {children}
+  </Button>
+);
 
 //Table Component
-export const Table = ({ Sort, SORTS, onSort, list, sortKey, onDismiss }) => (
+export const Table = ({ onSort, list, sortKey, onDismiss }) => (
   <div className="table">
     <div className="table-header">
       <span style={{ width: "40%" }}>
-        <Sort sortKey={"TITLE"} onSort={onSort}>
+        <Sort sortKey={"title"} onSort={onSort}>
           {" "}
           Title{" "}
         </Sort>
       </span>
       <span style={{ width: "30%" }}>
-        <Sort sortKey={"AUTHOR"} onSort={onSort}>
+        <Sort sortKey={"author"} onSort={onSort}>
           {" "}
           Author{" "}
         </Sort>
       </span>
       <span style={{ width: "10%" }}>
-        <Sort sortKey={"COMMENTS"} onSort={onSort}>
+        <Sort sortKey={"num_comments"} onSort={onSort}>
           {" "}
           Comments{" "}
         </Sort>
       </span>
       <span style={{ width: "10%" }}>
-        <Sort sortKey={"POINTS"} onSort={onSort}>
+        <Sort sortKey={"points"} onSort={onSort}>
           {" "}
           Points{" "}
         </Sort>
       </span>
       <span style={{ width: "10%" }}>Archive</span>
     </div>
-    {SORTS[sortKey].map(item => (
+    {sortBy(list, `${sortKey}`).map(item => (
       <div className="table-row" key={item.objectID}>
         <span style={largeColumn}>
           <a href={item.url}>{item.title}</a>
