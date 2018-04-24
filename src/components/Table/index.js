@@ -3,6 +3,7 @@ import Button from "../Button";
 import PropTypes from "prop-types";
 import { sortBy } from "lodash";
 import classNames from "classnames";
+import moment from "moment";
 import { COMMENTS_URL } from "../../constants";
 
 export const largeColumn = {
@@ -29,9 +30,9 @@ class Table extends Component {
   }
   onSort = sortKey => {
     const isSortReverse =
-      this.state.sortKey === sortKey && !this.state.isSortReverse;
+    this.state.sortKey === sortKey && !this.state.isSortReverse;
     this.setState({ sortKey, isSortReverse });
-    console.log("sort key-->", this.state.sortKey, isSortReverse);
+
   };
   render() {
     const { list, onDismiss } = this.props;
@@ -73,6 +74,18 @@ class Table extends Component {
               Author{" "}
             </Sort>
           </span>
+
+          <span style={{ width: "10%" }}>
+            <Sort
+              sortKey={"created_at"}
+              onSort={this.onSort}
+              activeSortKey={sortKey}
+            >
+              {" "}
+              Date{" "}
+            </Sort>
+          </span>
+
           <span style={{ width: "10%" }}>
             <Sort
               sortKey={"num_comments"}
@@ -95,32 +108,36 @@ class Table extends Component {
           </span>
           <span style={{ width: "10%" }}>Archive</span>
         </div>
-        {reverseSortedList.map(item => (
-          <div className="table-row" key={item.objectID}>
-            <span style={largeColumn}>
-              <a href={item.url}>{item.title}</a>
-            </span>
-            <span style={midColumn}>{item.author}</span>
-            <span style={smallColumn}>
-              {item.objectID ? (
-                <a target="_blank" href={`${COMMENTS_URL}${item.objectID}`}>
-                  {item.num_comments}
-                </a>
-              ) : (
-                <React.Fragment>{item.num_comments}</React.Fragment>
-              )}
-            </span>
-            <span style={smallColumn}>{item.points}</span>
-            <span style={smallColumn}>
-              <Button
-                className="button-inline"
-                onClick={() => onDismiss(item.objectID)}
-              >
-                Dismiss!
-              </Button>
-            </span>
-          </div>
-        ))}
+        {reverseSortedList.map(item => {
+          const createdAt = moment(item.created_at).format("M/D/YY");
+          return (
+            <div className="table-row" key={item.objectID}>
+              <span style={largeColumn}>
+                <a href={item.url}>{item.title}</a>
+              </span>
+              <span style={midColumn}>{item.author}</span>
+              <span style={smallColumn}>{createdAt}</span>
+              <span style={smallColumn}>
+                {item.objectID ? (
+                  <a target="_blank" href={`${COMMENTS_URL}${item.objectID}`}>
+                    {item.num_comments}
+                  </a>
+                ) : (
+                  <React.Fragment>{item.num_comments}</React.Fragment>
+                )}
+              </span>
+              <span style={smallColumn}>{item.points}</span>
+              <span style={smallColumn}>
+                <Button
+                  className="button-inline"
+                  onClick={() => onDismiss(item.objectID)}
+                >
+                  Dismiss!
+                </Button>
+              </span>
+            </div>
+          );
+        })}
       </div>
     );
   }
